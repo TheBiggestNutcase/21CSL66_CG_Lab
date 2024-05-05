@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image = cv2.imread('/Users/thebiggestnutcase/Documents/VSCode/21CSL66_CG_Lab/SimplePrograms/example.png')
+image = cv2.imread('SimplePrograms/random-1574391.jpg')
 
 # Get the image dimensions
 height, width = image.shape[:2]

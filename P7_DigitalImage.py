@@ -1,7 +1,7 @@
 import cv2
 
 # Read the image
-image = cv2.imread('/Users/thebiggestnutcase/Documents/VSCode/21CSL66_CG_Lab/SimplePrograms/example.png')
+image = cv2.imread('SimplePrograms/random-1574391.jpg')
 
 # Get the dimensions of the image
 height, width, channels = image.shape

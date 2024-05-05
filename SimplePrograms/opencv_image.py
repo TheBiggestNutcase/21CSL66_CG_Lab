@@ -2,7 +2,7 @@ import cv2
 
 def main():
     # Load an image
-    image = cv2.imread('example.png')
+    image = cv2.imread('SimplePrograms/random-1574391.jpg')
 
     if image is None:
         print("Error: Could not open or find the image.")
