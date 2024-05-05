@@ -1,88 +1,61 @@
-import math
+import OpenGL.GL as gl
+import OpenGL.GLU as glu
 import glfw
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
 
-def draw_square():
-    glBegin(GL_QUADS)
-    glVertex2f(-0.5, -0.5)
-    glVertex2f(0.5, -0.5)
-    glVertex2f(0.5, 0.5)
-    glVertex2f(-0.5, 0.5)
-    glEnd()
+# Initialize GLFW and create a window
+if not glfw.init():
+    raise Exception('GLFW initialization failed')
 
-def draw_circle(radius, num_segments=100):
-    glBegin(GL_TRIANGLE_FAN)
-    for i in range(num_segments):
-        theta = 2.0 * 3.1415926 * i / num_segments
-        x = radius * math.cos(theta)
-        y = radius * math.sin(theta)
-        glVertex2f(x, y)
-    glEnd()
+window = glfw.create_window(800, 600, 'Rectangle', None, None)
+if not window:
+    glfw.terminate()
+    raise Exception('Window creation failed')
 
-def draw_line(x1, y1, x2, y2):
-    glBegin(GL_LINES)
-    glVertex2f(x1, y1)
-    glVertex2f(x2, y2)
-    glEnd()
+glfw.make_context_current(window)
 
-def display():
-    glClear(GL_COLOR_BUFFER_BIT)
-    glColor3f(1, 1, 1)
-    glPointSize(2)
+# Set up OpenGL
+gl.glMatrixMode(gl.GL_PROJECTION)
+gl.glLoadIdentity()
+gl.glOrtho(-4, 4, -3, 3, -1, 1)
+gl.glMatrixMode(gl.GL_MODELVIEW)
 
-    # Draw a square
-    glColor3f(1, 0, 0)  # Red
-    glLoadIdentity()
-    glTranslatef(-0.5, 0.5, 0)
-    draw_square()
+# Set up the rectangle vertices
+vertices = [
+    (-2, -1),
+    (2, -1),
+    (2, 1),
+    (-2, 1)
+]
 
-    # Draw a circle
-    glColor3f(0, 1, 0)  # Green
-    glLoadIdentity()
-    glTranslatef(0.5, 0.5, 0)
-    draw_circle(0.3)
+# Set up the translation and rotation variables
+translation_x = 0
+translation_y = 0
+rotation_angle = 0
 
-    # Draw a line
-    glColor3f(0, 0, 1)  # Blue
-    glLoadIdentity()
-    draw_line(-0.8, -0.8, 0.8, -0.8)
+# Main loop
+while not glfw.window_should_close(window):
+    glfw.poll_events()
+
+    # Clear the screen
+    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+
+    # Apply transformations
+    gl.glLoadIdentity()
+    gl.glTranslatef(translation_x, translation_y, 0)
+    gl.glRotatef(rotation_angle, 0, 0, 1)
+
+    # Draw the rectangle
+    gl.glBegin(gl.GL_QUADS)
+    for vertex in vertices:
+        gl.glVertex2f(vertex[0], vertex[1])
+    gl.glEnd()
+
+    # Update transformations
+    translation_x += 0.01
+    translation_y += 0.01
+    rotation_angle += 1
 
     glfw.swap_buffers(window)
 
-def resize(window, width, height):
-    glViewport(0, 0, width, height)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    gluOrtho2D(-1, 1, -1, 1)
-    glMatrixMode(GL_MODELVIEW)
-
-def key_callback(window, key, scancode, action, mods):
-    if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        glfw.set_window_should_close(window, True)
-
-def main():
-    if not glfw.init():
-        return
-
-    global window
-    window = glfw.create_window(800, 600, "Basic Geometric Operations", None, None)
-    if not window:
-        glfw.terminate()
-        return
-
-    glfw.make_context_current(window)
-    glfw.set_window_size_callback(window, resize)
-    glfw.set_key_callback(window, key_callback)
-
-    glClearColor(0, 0, 0, 0)
-
-    while not glfw.window_should_close(window):
-        glfw.poll_events()
-        display()
-
-    glfw.terminate()
-
-if __name__ == "__main__":
-    main()
+# Clean up
+glfw.terminate()
