@@ -1,61 +1,83 @@
-import OpenGL.GL as gl
-import OpenGL.GLU as glu
-import glfw
+import turtle
+import math
 
-# Initialize GLFW and create a window
-if not glfw.init():
-    raise Exception('GLFW initialization failed')
+# Set up the turtle screen
+screen = turtle.Screen()
+screen.bgcolor("white")
 
-window = glfw.create_window(800, 600, 'Rectangle', None, None)
-if not window:
-    glfw.terminate()
-    raise Exception('Window creation failed')
+# Create a turtle instance
+t = turtle.Turtle()
+t.speed(1)  # Set the drawing speed (1 is slowest, 10 is fastest)
+t.pensize(2)  # Set the pen size
 
-glfw.make_context_current(window)
+# Define a function to draw a rectangle
+def draw_rectangle(x, y, width, height, color):
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.color(color)
+    for _ in range(2):
+        t.forward(width)
+        t.left(90)
+        t.forward(height)
+        t.left(90)
 
-# Set up OpenGL
-gl.glMatrixMode(gl.GL_PROJECTION)
-gl.glLoadIdentity()
-gl.glOrtho(-4, 4, -3, 3, -1, 1)
-gl.glMatrixMode(gl.GL_MODELVIEW)
+# Define a function to draw a circle
+def draw_circle(x, y, radius, color):
+    t.penup()
+    t.goto(x, y - radius)
+    t.pendown()
+    t.color(color)
+    t.circle(radius)
 
-# Set up the rectangle vertices
-vertices = [
-    (-2, -1),
-    (2, -1),
-    (2, 1),
-    (-2, 1)
-]
+# Define a function to translate a 2D object
+def translate(x, y, dx, dy):
+    t.penup()
+    t.goto(x + dx, y + dy)
+    t.pendown()
 
-# Set up the translation and rotation variables
-translation_x = 0
-translation_y = 0
-rotation_angle = 0
+# Define a function to rotate a 2D object
+def rotate(x, y, angle):
+    t.penup()
+    t.goto(x, y)
+    t.setheading(angle)
+    t.pendown()
 
-# Main loop
-while not glfw.window_should_close(window):
-    glfw.poll_events()
+# Define a function to scale a 2D object
+def scale(x, y, sx, sy):
+    t.penup()
+    t.goto(x * sx, y * sy)
+    t.pendown()
 
-    # Clear the screen
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+# Draw a rectangle
+draw_rectangle(-200, 0, 100, 50, "blue")
 
-    # Apply transformations
-    gl.glLoadIdentity()
-    gl.glTranslatef(translation_x, translation_y, 0)
-    gl.glRotatef(rotation_angle, 0, 0, 1)
+# Translate the rectangle
+translate(-200, 0, 200, 0)
+draw_rectangle(0, 0, 100, 50, "blue")
 
-    # Draw the rectangle
-    gl.glBegin(gl.GL_QUADS)
-    for vertex in vertices:
-        gl.glVertex2f(vertex[0], vertex[1])
-    gl.glEnd()
+# Rotate the rectangle
+rotate(0, 0, 45)
+draw_rectangle(0, 0, 100, 50, "blue")
 
-    # Update transformations
-    translation_x += 0.01
-    translation_y += 0.01
-    rotation_angle += 1
+# Scale the rectangle
+scale(0, 0, 2, 2)
+draw_rectangle(0, 0, 100, 50, "blue")
 
-    glfw.swap_buffers(window)
+# Draw a circle
+draw_circle(100, 100, 50, "red")
 
-# Clean up
-glfw.terminate()
+# Translate the circle
+translate(100, 100, 200, 0)
+draw_circle(300, 100, 50, "red")
+
+# Rotate the circle
+rotate(300, 100, 45)
+draw_circle(300, 100, 50, "red")
+
+# Scale the circle
+scale(300, 100, 2, 2)
+draw_circle(600, 200, 50, "red")
+
+# Keep the window open until it's closed
+turtle.done()

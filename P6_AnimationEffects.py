@@ -1,79 +1,54 @@
-import OpenGL.GL as gl
-import OpenGL.GLU as glu
-import glfw
-import math
+import tkinter as tk
+import random
 
-# Initialize GLFW and create a window
-if not glfw.init():
-    raise Exception('GLFW initialization failed')
+# Initialize the main window
+root = tk.Tk()
+root.title("Animation Effects")
 
-window = glfw.create_window(800, 600, 'Animation Effects', None, None)
-if not window:
-    glfw.terminate()
-    raise Exception('Window creation failed')
+# Set up the canvas
+screen_width = 800
+screen_height = 600
+canvas = tk.Canvas(root, width=screen_width, height=screen_height, bg="white")
+canvas.pack()
 
-glfw.make_context_current(window)
+# Define colors
+colors = ["red", "green", "blue"]
 
-# Set up OpenGL
-gl.glMatrixMode(gl.GL_PROJECTION)
-gl.glLoadIdentity()
-gl.glOrtho(-4, 4, -3, 3, -1, 1)
-gl.glMatrixMode(gl.GL_MODELVIEW)
+# Define object properties
+num_objects = 10
+objects = []
+for _ in range(num_objects):
+    x = random.randint(50, screen_width - 50)
+    y = random.randint(50, screen_height - 50)
+    radius = random.randint(10, 30)
+    color = random.choice(colors)
+    speed_x = random.randint(-5, 5)
+    speed_y = random.randint(-5, 5)
+    obj = {"x": x, "y": y, "radius": radius, "color": color, "speed_x": speed_x, "speed_y": speed_y, "id": None}
+    obj["id"] = canvas.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline=color)
+    objects.append(obj)
 
-# Define the vertices for the objects
-square_vertices = [
-    (-1, -1),
-    (1, -1),
-    (1, 1),
-    (-1, 1)
-]
+# Animation update function
+def update():
+    for obj in objects:
+        # Move the object
+        obj["x"] += obj["speed_x"]
+        obj["y"] += obj["speed_y"]
 
-triangle_vertices = [
-    (-1, 0),
-    (1, 0),
-    (0, 1)
-]
+        # Bounce off the edges
+        if obj["x"] - obj["radius"] < 0 or obj["x"] + obj["radius"] > screen_width:
+            obj["speed_x"] = -obj["speed_x"]
+        if obj["y"] - obj["radius"] < 0 or obj["y"] + obj["radius"] > screen_height:
+            obj["speed_y"] = -obj["speed_y"]
 
-# Set up the animation variables
-square_rotation = 0
-triangle_scale = 1
-animation_offset = 0
+        # Update the object's position on the canvas
+        canvas.coords(obj["id"], obj["x"]-obj["radius"], obj["y"]-obj["radius"], obj["x"]+obj["radius"], obj["y"]+obj["radius"])
 
-# Main loop
-while not glfw.window_should_close(window):
-    glfw.poll_events()
+    # Schedule the next update
+    root.after(16, update)  # Approx 60 FPS
 
-    # Clear the screen
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+# Start the animation
+update()
 
-    # Animate the square
-    gl.glLoadIdentity()
-    gl.glTranslatef(math.sin(animation_offset) * 2, 0, 0)
-    gl.glRotatef(square_rotation, 0, 0, 1)
-
-    # Draw the square
-    gl.glBegin(gl.GL_QUADS)
-    for vertex in square_vertices:
-        gl.glVertex2f(vertex[0], vertex[1])
-    gl.glEnd()
-
-    # Animate the triangle
-    gl.glLoadIdentity()
-    gl.glTranslatef(-math.sin(animation_offset) * 2, 0, 0)
-    gl.glScalef(triangle_scale, triangle_scale, 1)
-
-    # Draw the triangle
-    gl.glBegin(gl.GL_TRIANGLES)
-    for vertex in triangle_vertices:
-        gl.glVertex2f(vertex[0], vertex[1])
-    gl.glEnd()
-
-    # Update animation variables
-    square_rotation += 1
-    triangle_scale += 0.01
-    animation_offset += 0.01
-
-    glfw.swap_buffers(window)
-
-# Clean up
-glfw.terminate()
+# Run the Tkinter main loop
+root.mainloop()

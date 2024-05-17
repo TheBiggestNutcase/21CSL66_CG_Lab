@@ -1,62 +1,51 @@
-from OpenGL.GL import *
-from OpenGL.GLUT import *
+import turtle
 
-X1, Y1, X2, Y2 = 0, 0, 0, 0
+def bresenham_line(x1, y1, x2, y2):
+    # Calculate the deltas
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
 
-def LineBres():
-    global X1, Y1, X2, Y2  # Define X1, Y1, X2, Y2 as global
-    glClear(GL_COLOR_BUFFER_BIT)
-    dx = abs(X2 - X1)
-    dy = abs(Y2 - Y1)
-    p = 2 * dy - dx
-    twoDy = 2 * dy
-    twoDyDx = 2 * (dy - dx)
-    x, y = 0, 0
-    if X1 > X2:
-        x = X2
-        y = Y2
-        X2 = X1
-    else:
-        x = X1
-        y = Y1
-        X2 = X2
-    glBegin(GL_POINTS)
-    glVertex2i(x, y)
-    while x < X2:
-        x += 1
-        if p < 0:
-            p += twoDy
-        else:
-            y += 1
-            p += twoDyDx
-        glVertex2i(x, y)
-    glEnd()
-    glFlush()
+    # Determine the step direction for each axis
+    x_step = 1 if x1 < x2 else -1
+    y_step = 1 if y1 < y2 else -1
 
-def Init():
-    glClearColor(1.0, 1.0, 1.0, 0)
-    glColor3f(0.0, 0.0, 0.0)
-    glPointSize(8.0)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0, 500, 0, 500, -1, 1)
+    # Initialize the error term
+    error = 2 * dy - dx
 
-def display():
-    LineBres()
+    # Initialize the line points
+    line_points = []
 
-def main():
-    global X1, Y1, X2, Y2
-    print("Enter two points for drawing line Bresenham:")
-    X1, Y1 = map(int, input("\nEnter points (X1,Y1): ").split())
-    X2, Y2 = map(int, input("Enter points (X2,Y2): ").split())
+    # Start at the first point
+    x, y = x1, y1
 
-    glutInit()
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)
-    glutInitWindowSize(500, 500)
-    glutCreateWindow("LINE BRESENHAM")
-    Init()
-    glutDisplayFunc(display)
-    glutMainLoop()
+    # Draw the line
+    for _ in range(dx + 1):
+        # Add the current point to the line
+        line_points.append((x, y))
 
-if __name__ == "__main__":
-    main()
+        # Update the error term and adjust the coordinates
+        if error > 0:
+            y += y_step
+            error -= 2 * dx
+        error += 2 * dy
+        x += x_step
+
+    return line_points
+
+# Example usage
+turtle.setup(500, 500)
+turtle.speed(0)  # Fastest drawing speed
+
+x1, y1 = 0, 0
+x2, y2 = 80, 60
+
+line_points = bresenham_line(x1, y1, x2, y2)
+
+# Draw the line
+turtle.penup()
+turtle.goto(x1, y1)
+turtle.pendown()
+for x, y in line_points:
+    turtle.goto(x, y)
+
+turtle.exitonclick()
