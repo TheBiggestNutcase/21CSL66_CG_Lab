@@ -1,33 +1,85 @@
-import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 
-# Define the dimensions of the canvas
-canvas_width = 500
-canvas_height = 500
+def plot_shape(vertices, color='b', label=None):
+    vertices = np.append(vertices, [vertices[0]], axis=0)  # Close the shape
+    plt.plot(vertices[:, 0], vertices[:, 1], color=color, label=label)
 
-# Create a blank canvas
-canvas = np.ones((canvas_height, canvas_width, 3), dtype=np.uint8) * 255
+def translate(vertices, tx, ty):
+    translation_matrix = np.array([[1, 0, tx],
+                                   [0, 1, ty],
+                                   [0, 0, 1]])
+    vertices_homogeneous = np.hstack([vertices, np.ones((vertices.shape[0], 1))])
+    translated_vertices = vertices_homogeneous.dot(translation_matrix.T)
+    return translated_vertices[:, :2]
 
-# Define the initial object (a square)
-obj_points = np.array([[100, 100], [200, 100], [200, 200], [100, 200]], dtype=np.int32)
+def rotate(vertices, angle):
+    theta = np.radians(angle)
+    rotation_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
+                                [np.sin(theta),  np.cos(theta), 0],
+                                [0, 0, 1]])
+    vertices_homogeneous = np.hstack([vertices, np.ones((vertices.shape[0], 1))])
+    rotated_vertices = vertices_homogeneous.dot(rotation_matrix.T)
+    return rotated_vertices[:, :2]
 
-# Define the transformation matrices
-translation_matrix = np.float32([[1, 0, 100], [0, 1, 50]])
-rotation_matrix = cv2.getRotationMatrix2D((150, 150), 45, 1)
-scaling_matrix = np.float32([[1.5, 0, 0], [0, 1.5, 0]])
+def scale(vertices, sx, sy):
+    scaling_matrix = np.array([[sx, 0, 0],
+                               [0, sy, 0],
+                               [0, 0, 1]])
+    vertices_homogeneous = np.hstack([vertices, np.ones((vertices.shape[0], 1))])
+    scaled_vertices = vertices_homogeneous.dot(scaling_matrix.T)
+    return scaled_vertices[:, :2]
 
-# Apply transformations
-translated_obj = np.array([np.dot(translation_matrix, [x, y, 1])[:2] for x, y in obj_points], dtype=np.int32)
-rotated_obj = np.array([np.dot(rotation_matrix, [x, y, 1])[:2] for x, y in translated_obj], dtype=np.int32)
-scaled_obj = np.array([np.dot(scaling_matrix, [x, y, 1])[:2] for x, y in rotated_obj], dtype=np.int32)
+def main():
+    # Define the original square vertices
+    square_vertices = np.array([
+        [1, 1],
+        [3, 1],
+        [3, 3],
+        [1, 3]
+    ])
 
-# Draw the objects on the canvas
-cv2.polylines(canvas, [obj_points], True, (0, 0, 0), 2)
-cv2.polylines(canvas, [translated_obj], True, (0, 255, 0), 2)
-cv2.polylines(canvas, [rotated_obj], True, (255, 0, 0), 2)
-cv2.polylines(canvas, [scaled_obj], True, (0, 0, 255), 2)
+    # Define the original triangle vertices
+    triangle_vertices = np.array([
+        [4, 1],
+        [5, 3],
+        [6, 1]
+    ])
 
-# Display the canvas
-cv2.imshow("2D Transformations", canvas)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    plt.figure()
+    plt.axis('equal')
+    plt.grid(True)
+
+    # Plot the original square and triangle
+    plot_shape(square_vertices, color='b', label='Original Square')
+    plot_shape(triangle_vertices, color='c', label='Original Triangle')
+
+    # Apply and plot the translated square and triangle
+    translated_square = translate(square_vertices, 2, 2)
+    plot_shape(translated_square, color='r', label='Translated Square (tx=2, ty=2)')
+
+    translated_triangle = translate(triangle_vertices, 2, 2)
+    plot_shape(translated_triangle, color='m', label='Translated Triangle (tx=2, ty=2)')
+
+    # Apply and plot the rotated square and triangle
+    rotated_square = rotate(square_vertices, 45)
+    plot_shape(rotated_square, color='g', label='Rotated Square (45 degrees)')
+
+    rotated_triangle = rotate(triangle_vertices, 45)
+    plot_shape(rotated_triangle, color='y', label='Rotated Triangle (45 degrees)')
+
+    # Apply and plot the scaled square and triangle
+    scaled_square = scale(square_vertices, 1.5, 0.5)
+    plot_shape(scaled_square, color='purple', label='Scaled Square (sx=1.5, sy=0.5)')
+
+    scaled_triangle = scale(triangle_vertices, 1.5, 0.5)
+    plot_shape(scaled_triangle, color='orange', label='Scaled Triangle (sx=1.5, sy=0.5)')
+
+    plt.legend()
+    plt.title('2D Transformations on a Square and a Triangle')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.show()
+
+if __name__ == "__main__":
+    main()

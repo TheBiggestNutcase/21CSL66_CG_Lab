@@ -1,54 +1,96 @@
-from vpython import canvas, box, cylinder, vector, color, rate
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-# Create a 3D canvas
-scene = canvas(width=800, height=600, background=color.white)
+# Define the cube vertices
+def create_cube():
+    vertices = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 1, 1]
+    ])
+    return vertices
 
-# Define a function to draw a cuboid
-def draw_cuboid(pos, length, width, height, color):
-    cuboid = box(pos=vector(*pos), length=length, width=width, height=height, color=color)
-    return cuboid
+# Define the faces of the cube
+def create_faces(vertices):
+    faces = [
+        [vertices[j] for j in [0, 1, 2, 3]],
+        [vertices[j] for j in [4, 5, 6, 7]],
+        [vertices[j] for j in [0, 1, 5, 4]],
+        [vertices[j] for j in [2, 3, 7, 6]],
+        [vertices[j] for j in [1, 2, 6, 5]],
+        [vertices[j] for j in [4, 7, 3, 0]]
+    ]
+    return faces
 
-# Define a function to draw a cylinder
-def draw_cylinder(pos, radius, height, color):
-    cyl = cylinder(pos=vector(*pos), radius=radius, height=height, color=color)
-    return cyl
+# Translation function
+def translate(vertices, tx, ty, tz):
+    translation_matrix = np.array([tx, ty, tz])
+    return vertices + translation_matrix
 
-# Define a function to translate a 3D object
-def translate(obj, dx, dy, dz):
-    obj.pos += vector(dx, dy, dz)
+# Rotation function (around the Z axis)
+def rotate(vertices, angle):
+    theta = np.radians(angle)
+    rotation_matrix = np.array([
+        [np.cos(theta), -np.sin(theta), 0],
+        [np.sin(theta), np.cos(theta), 0],
+        [0, 0, 1]
+    ])
+    return np.dot(vertices, rotation_matrix)
 
-# Define a function to rotate a 3D object
-def rotate(obj, angle, axis):
-    obj.rotate(angle=angle, axis=vector(*axis))
+# Scaling function
+def scale(vertices, sx, sy, sz):
+    scaling_matrix = np.array([
+        [sx, 0, 0],
+        [0, sy, 0],
+        [0, 0, sz]
+    ])
+    return np.dot(vertices, scaling_matrix)
 
-# Define a function to scale a 3D object
-def scale(obj, sx, sy, sz):
-    obj.size = vector(obj.size.x * sx, obj.size.y * sy, obj.size.z * sz)
+# Plotting function
+def plot_cube(vertices, title):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    faces = create_faces(vertices)
+    face_collection = Poly3DCollection(faces, alpha=0.25, linewidths=1, edgecolors='r')
+    face_collection.set_facecolor('cyan')
+    ax.add_collection3d(face_collection)
+    
+    # Plot the vertices
+    ax.scatter3D(vertices[:, 0], vertices[:, 1], vertices[:, 2])
+    
+    # Setting the plot title
+    ax.set_title(title)
+    
+    # Set labels
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    
+    # Set the aspect ratio to be equal
+    ax.set_box_aspect([1,1,1])
+    
+    plt.show()
 
-# Draw a cuboid
-cuboid = draw_cuboid((-2, 0, 0), 2, 2, 2, color.blue)
+# Create the original cube
+original_cube = create_cube()
 
-# Translate the cuboid
-translate(cuboid, 4, 0, 0)
+# Plot the original cube
+plot_cube(original_cube, "Original Cube")
 
-# Rotate the cuboid
-rotate(cuboid, angle=45, axis=(0, 1, 0))
+# Translate the cube
+translated_cube = translate(original_cube, 2, 3, 1)
+plot_cube(translated_cube, "Translated Cube (tx=2, ty=3, tz=1)")
 
-# Scale the cuboid
-scale(cuboid, 1.5, 1.5, 1.5)
+# Rotate the cube
+rotated_cube = rotate(original_cube, 45)
+plot_cube(rotated_cube, "Rotated Cube (45 degrees around Z-axis)")
 
-# Draw a cylinder
-cylinder = draw_cylinder((2, 2, 0), 1, 10, color.red)
-
-# Translate the cylinder
-translate(cylinder, 0, -2, 0)
-
-# Rotate the cylinder
-rotate(cylinder, angle=30, axis=(1, 0, 0))
-
-# Scale the cylinder
-scale(cylinder, 1.5, 1.5, 1.5)
-
-# Keep the 3D scene interactive
-while True:
-    rate(30)  # Set the frame rate to 30 frames per second
+# Scale the cube
+scaled_cube = scale(original_cube, 1.5, 0.5, 2)
+plot_cube(scaled_cube, "Scaled Cube (sx=1.5, sy=0.5, sz=2)")

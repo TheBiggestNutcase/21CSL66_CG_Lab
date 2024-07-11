@@ -1,83 +1,51 @@
 import turtle
 import math
 
-# Set up the turtle screen
+# Set up the screen
 screen = turtle.Screen()
+screen.title("Geometric Transformations with Turtle")
 screen.bgcolor("white")
 
-# Create a turtle instance
+# Create a turtle to draw the original square
 t = turtle.Turtle()
-t.speed(1)  # Set the drawing speed (1 is slowest, 10 is fastest)
-t.pensize(2)  # Set the pen size
 
-# Define a function to draw a rectangle
-def draw_rectangle(x, y, width, height, color):
+def draw_square(t, vertices, color):
     t.penup()
-    t.goto(x, y)
+    t.goto(vertices[0])
     t.pendown()
     t.color(color)
-    for _ in range(2):
-        t.forward(width)
-        t.left(90)
-        t.forward(height)
-        t.left(90)
+    for vertex in vertices[1:]:
+        t.goto(vertex)
+    t.goto(vertices[0])
 
-# Define a function to draw a circle
-def draw_circle(x, y, radius, color):
-    t.penup()
-    t.goto(x, y - radius)
-    t.pendown()
-    t.color(color)
-    t.circle(radius)
+def translate(vertices, tx, ty):
+    return [(x + tx, y + ty) for x, y in vertices]
 
-# Define a function to translate a 2D object
-def translate(x, y, dx, dy):
-    t.penup()
-    t.goto(x + dx, y + dy)
-    t.pendown()
+def rotate(vertices, angle):
+    theta = math.radians(angle)
+    return [(x * math.cos(theta) - y * math.sin(theta), x * math.sin(theta) + y * math.cos(theta)) for x, y in vertices]
 
-# Define a function to rotate a 2D object
-def rotate(x, y, angle):
-    t.penup()
-    t.goto(x, y)
-    t.setheading(angle)
-    t.pendown()
+def scale(vertices, sx, sy):
+    return [(x * sx, y * sy) for x, y in vertices]
 
-# Define a function to scale a 2D object
-def scale(x, y, sx, sy):
-    t.penup()
-    t.goto(x * sx, y * sy)
-    t.pendown()
+# Define the original square vertices
+square_vertices = [(50, 50), (150, 50), (150, 150), (50, 150)]
 
-# Draw a rectangle
-draw_rectangle(-200, 0, 100, 50, "blue")
+# Draw the original square
+draw_square(t, square_vertices, "black")
 
-# Translate the rectangle
-translate(-200, 0, 200, 0)
-draw_rectangle(0, 0, 100, 50, "blue")
+# Translate the square
+translated_vertices = translate(square_vertices, 200, 100)
+draw_square(t, translated_vertices, "blue")
 
-# Rotate the rectangle
-rotate(0, 0, 45)
-draw_rectangle(0, 0, 100, 50, "blue")
+# Rotate the square
+rotated_vertices = rotate(square_vertices, 45)
+draw_square(t, rotated_vertices, "red")
 
-# Scale the rectangle
-scale(0, 0, 2, 2)
-draw_rectangle(0, 0, 100, 50, "blue")
+# Scale the square
+scaled_vertices = scale(square_vertices, 0.5, 0.5)
+draw_square(t, scaled_vertices, "green")
 
-# Draw a circle
-draw_circle(100, 100, 50, "red")
-
-# Translate the circle
-translate(100, 100, 200, 0)
-draw_circle(300, 100, 50, "red")
-
-# Rotate the circle
-rotate(300, 100, 45)
-draw_circle(300, 100, 50, "red")
-
-# Scale the circle
-scale(300, 100, 2, 2)
-draw_circle(600, 200, 50, "red")
-
-# Keep the window open until it's closed
+# Hide the turtle and display the window
+t.hideturtle()
 turtle.done()

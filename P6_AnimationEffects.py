@@ -1,54 +1,71 @@
-import tkinter as tk
-import random
+import pygame
+from pygame.locals import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
+import math
+import numpy as np
 
-# Initialize the main window
-root = tk.Tk()
-root.title("Animation Effects")
+# Function to draw a circle
+def draw_circle(radius, num_segments):
+    glBegin(GL_TRIANGLE_FAN)
+    for i in range(num_segments + 1):
+        angle = 2.0 * math.pi * i / num_segments
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        glVertex2f(x, y)
+    glEnd()
 
-# Set up the canvas
-screen_width = 800
-screen_height = 600
-canvas = tk.Canvas(root, width=screen_width, height=screen_height, bg="white")
-canvas.pack()
+def main():
+    pygame.init()
+    display = (800, 600)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    gluOrtho2D(-400, 400, -300, 300)
 
-# Define colors
-colors = ["red", "green", "blue"]
+    # Variables for animations
+    angle = 0
+    scale = 1.0
+    x_translation = 0
+    y_translation = 0
+    color_change = 0
 
-# Define object properties
-num_objects = 10
-objects = []
-for _ in range(num_objects):
-    x = random.randint(50, screen_width - 50)
-    y = random.randint(50, screen_height - 50)
-    radius = random.randint(10, 30)
-    color = random.choice(colors)
-    speed_x = random.randint(-5, 5)
-    speed_y = random.randint(-5, 5)
-    obj = {"x": x, "y": y, "radius": radius, "color": color, "speed_x": speed_x, "speed_y": speed_y, "id": None}
-    obj["id"] = canvas.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline=color)
-    objects.append(obj)
+    clock = pygame.time.Clock()
 
-# Animation update function
-def update():
-    for obj in objects:
-        # Move the object
-        obj["x"] += obj["speed_x"]
-        obj["y"] += obj["speed_y"]
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
 
-        # Bounce off the edges
-        if obj["x"] - obj["radius"] < 0 or obj["x"] + obj["radius"] > screen_width:
-            obj["speed_x"] = -obj["speed_x"]
-        if obj["y"] - obj["radius"] < 0 or obj["y"] + obj["radius"] > screen_height:
-            obj["speed_y"] = -obj["speed_y"]
+        # Clear the screen and set the color
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(0.0, 0.0, 0.0, 1.0)
 
-        # Update the object's position on the canvas
-        canvas.coords(obj["id"], obj["x"]-obj["radius"], obj["y"]-obj["radius"], obj["x"]+obj["radius"], obj["y"]+obj["radius"])
+        # Apply transformations
+        glPushMatrix()
+        glTranslatef(x_translation, y_translation, 0)
+        glRotatef(angle, 0, 0, 1)
+        glScalef(scale, scale, 1.0)
+        
+        # Apply color change
+        red = 0.5 * (1 + np.sin(color_change))
+        green = 0.5 * (1 + np.cos(color_change))
+        blue = 0.5 * (1 - np.sin(color_change))
+        glColor3f(red, green, blue)
 
-    # Schedule the next update
-    root.after(16, update)  # Approx 60 FPS
+        # Draw the circle
+        draw_circle(100, 50)
+        
+        glPopMatrix()
 
-# Start the animation
-update()
+        # Update animations
+        angle += 1  # Rotate
+        scale = 1.5 + 0.5 * np.sin(pygame.time.get_ticks() * 0.001)  # Scale with time
+        x_translation = 200 * np.sin(pygame.time.get_ticks() * 0.001)  # Translate with time
+        y_translation = 150 * np.cos(pygame.time.get_ticks() * 0.001)  # Translate with time
+        color_change += 0.01  # Change color over time
 
-# Run the Tkinter main loop
-root.mainloop()
+        pygame.display.flip()
+        clock.tick(60)
+
+if __name__ == "__main__":
+    main()
