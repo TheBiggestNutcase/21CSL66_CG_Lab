@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load an image from file
-image = cv2.imread('/Users/thebiggestnutcase/Documents/VSCode/21CSL66_CG_Lab/SimplePrograms/random-1574391.jpg')
+image = cv2.imread('SimplePrograms/random-1574391.jpg')
 
 # Ensure the image was loaded
 if image is None:
