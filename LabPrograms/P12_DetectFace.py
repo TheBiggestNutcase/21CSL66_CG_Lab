@@ -2,7 +2,7 @@ import cv2
 # Load the cascade classifier for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 # Load the image
-image = cv2.imread('image4-2 copy.png')
+image = cv2.imread('Data/image4-2 copy.png')
 # Convert the image to grayscale
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 # Detect faces in the grayscale image
