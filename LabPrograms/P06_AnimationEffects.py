@@ -1,71 +1,59 @@
 import pygame
-from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
 import math
 import numpy as np
 
 # Function to draw a circle
-def draw_circle(radius, num_segments):
-    glBegin(GL_TRIANGLE_FAN)
-    for i in range(num_segments + 1):
-        angle = 2.0 * math.pi * i / num_segments
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        glVertex2f(x, y)
-    glEnd()
+def draw_circle(surface, color, center, radius):
+    pygame.draw.circle(surface, color, center, int(radius))
 
-def main():
-    pygame.init()
-    display = (800, 600)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-    gluOrtho2D(-400, 400, -300, 300)
 
-    # Variables for animations
-    angle = 0
-    scale = 1.0
-    x_translation = 0
-    y_translation = 0
-    color_change = 0
+pygame.init()
+width, height = 800, 600
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
 
-    clock = pygame.time.Clock()
+# Variables for animations
+angle = 0
+scale = 1.0
+x_translation = width // 2
+y_translation = height // 2
+color_change = 0
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit(0)
 
-        # Clear the screen and set the color
-        glClear(GL_COLOR_BUFFER_BIT)
-        glClearColor(0.0, 0.0, 0.0, 1.0)
+    # Clear the screen
+    screen.fill((0, 0, 0))
 
-        # Apply transformations
-        glPushMatrix()
-        glTranslatef(x_translation, y_translation, 0)
-        glRotatef(angle, 0, 0, 1)
-        glScalef(scale, scale, 1.0)
-        
-        # Apply color change
-        red = 0.5 * (1 + np.sin(color_change))
-        green = 0.5 * (1 + np.cos(color_change))
-        blue = 0.5 * (1 - np.sin(color_change))
-        glColor3f(red, green, blue)
+    # Calculate transformations
+    scaled_radius = 100 * scale
+    x = x_translation + 200 * math.sin(pygame.time.get_ticks() * 0.001)
+    y = y_translation + 150 * math.cos(pygame.time.get_ticks() * 0.001)
 
-        # Draw the circle
-        draw_circle(100, 50)
-        
-        glPopMatrix()
+    # Calculate color
+    red = int(255 * 0.5 * (1 + math.sin(color_change)))
+    green = int(255 * 0.5 * (1 + math.cos(color_change)))
+    blue = int(255 * 0.5 * (1 - math.sin(color_change)))
+    color = (red, green, blue)
 
-        # Update animations
-        angle += 1  # Rotate
-        scale = 1.5 + 0.5 * np.sin(pygame.time.get_ticks() * 0.001)  # Scale with time
-        x_translation = 200 * np.sin(pygame.time.get_ticks() * 0.001)  # Translate with time
-        y_translation = 150 * np.cos(pygame.time.get_ticks() * 0.001)  # Translate with time
-        color_change += 0.01  # Change color over time
+    # Create a surface for the circle
+    circle_surface = pygame.Surface((int(scaled_radius*2), int(scaled_radius*2)), pygame.SRCALPHA)
+    draw_circle(circle_surface, color, (int(scaled_radius), int(scaled_radius)), scaled_radius)
 
-        pygame.display.flip()
-        clock.tick(60)
+    # Rotate the circle
+    rotated_circle = pygame.transform.rotate(circle_surface, angle)
 
-if __name__ == "__main__":
-    main()
+    # Draw the rotated circle on the screen
+    circle_rect = rotated_circle.get_rect(center=(int(x), int(y)))
+    screen.blit(rotated_circle, circle_rect)
+
+    # Update animations
+    angle += 1  # Rotate
+    scale = 1.5 + 0.5 * math.sin(pygame.time.get_ticks() * 0.001)  # Scale with time
+    color_change += 0.01  # Change color over time
+
+    pygame.display.flip()
+    clock.tick(60)

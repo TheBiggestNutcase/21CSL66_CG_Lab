@@ -1,116 +1,98 @@
 import pygame
-from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
-import numpy as np
+import math
 
-# Define vertices, edges, and colors of a proper cube
-vertices = ((1,-1,-1),
-            (1,1,-1),
-            (-1,1,-1),
-            (-1,-1,-1),
-            (1,-1,1),
-            (1,1,1),
-            (-1,-1,1),
-            (-1,1,1))
+# Initialize Pygame
+pygame.init()
 
-edges = ((0, 1),
-         (1, 2),
-         (2, 3),
-         (3, 0),
-         (4, 5),
-         (5, 6),
-         (6, 7),
-         (7, 4),
-         (0, 4),
-         (1, 5),
-         (2, 6),
-         (3, 7))
+# Set up the display
+width, height = 800, 600
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
 
-surfaces = ((0, 1, 2, 3),
-            (3, 2, 7, 6),
-            (6, 7, 5, 4),
-            (4, 5, 1, 0),
-            (1, 5, 7, 2),
-            (4, 0, 3, 6))
+# Define cube vertices
+vertices = [
+    [-1, -1, -1],
+    [1, -1, -1],
+    [1, 1, -1],
+    [-1, 1, -1],
+    [-1, -1, 1],
+    [1, -1, 1],
+    [1, 1, 1],
+    [-1, 1, 1]
+]
 
-colors = ((1, 0, 0),
-          (0, 1, 0),
-          (0, 0, 1),
-          (1, 1, 0),
-          (1, 0, 1),
-          (0, 1, 1),
-          (1, 1, 1),
-          (0.5, 0.5, 0.5))
+# Define edges
+edges = [
+    (0, 1), (1, 2), (2, 3), (3, 0),  # back face
+    (4, 5), (5, 6), (6, 7), (7, 4),  # front face
+    (0, 4), (1, 5), (2, 6), (3, 7)   # connecting edges
+]
 
-def draw_cube():
-    glBegin(GL_QUADS)
-    for surface in surfaces:
-        for vertex in surface:
-            glColor3fv(colors[vertex])
-            glVertex3fv(vertices[vertex])
-    glEnd()
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
-    glBegin(GL_LINES)
+# Function to rotate and scale point
+def transform_point(x, y, z, angle_x, angle_y, scale):
+    # Scale
+    x *= scale
+    y *= scale
+    z *= scale
+
+    # Rotate around Y-axis
+    new_x = x * math.cos(angle_y) - z * math.sin(angle_y)
+    new_z = x * math.sin(angle_y) + z * math.cos(angle_y)
+    x, z = new_x, new_z
+
+    # Rotate around X-axis
+    new_y = y * math.cos(angle_x) - z * math.sin(angle_x)
+    new_z = y * math.sin(angle_x) + z * math.cos(angle_x)
+    y, z = new_y, new_z
+
+    return x, y, z
+
+# Function to project 3D point to 2D
+def project(x, y, z, win_width, win_height, fov, viewer_distance):
+    factor = fov / (viewer_distance + z)
+    x = x * factor + win_width / 2
+    y = -y * factor + win_height / 2
+    return x, y
+
+# Main game loop
+angle_x, angle_y = 0, 0
+scale = 1.0
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                angle_y -= 0.1
+            elif event.key == pygame.K_RIGHT:
+                angle_y += 0.1
+            elif event.key == pygame.K_UP:
+                angle_x -= 0.1
+            elif event.key == pygame.K_DOWN:
+                angle_x += 0.1
+            elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
+                scale += 0.1
+            elif event.key == pygame.K_MINUS:
+                scale = max(0.1, scale - 0.1)  # Prevent negative or zero scale
+
+    screen.fill(BLACK)
+
+    # Draw edges
     for edge in edges:
+        points = []
         for vertex in edge:
-            glColor3fv((0, 0, 0))
-            glVertex3fv(vertices[vertex])
-    glEnd()
+            x, y, z = vertices[vertex]
+            x, y, z = transform_point(x, y, z, angle_x, angle_y, scale)
+            x, y = project(x, y, z, width, height, 256, 4)
+            points.append((x, y))
+        pygame.draw.line(screen, WHITE, points[0], points[1], 1)
 
-def main():
-    pygame.init()
-    display = (800, 600)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-    gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
-    glTranslatef(0.0, 0.0, -5)
-    
-    # Variables for transformations
-    angle_x = 0
-    angle_y = 0
-    scale = 1.0
-    x_translation = 0
-    y_translation = 0
+    pygame.display.flip()
+    clock.tick(60)
 
-    clock = pygame.time.Clock()
-    
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
-            elif event.type == KEYDOWN:
-                if event.key == K_LEFT:
-                    angle_y -= 5
-                elif event.key == K_RIGHT:
-                    angle_y += 5
-                elif event.key == K_UP:
-                    angle_x -= 5
-                elif event.key == K_DOWN:
-                    angle_x += 5
-                elif event.key == K_PLUS or event.key == K_EQUALS:
-                    scale += 0.1
-                elif event.key == K_MINUS or event.key == K_UNDERSCORE:
-                    scale -= 0.1
-
-        # Clear the screen and set the color
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glClearColor(0.0, 0.0, 0.0, 1.0)
-        
-        # Apply transformations
-        glPushMatrix()
-        glTranslatef(x_translation, y_translation, 0)
-        glRotatef(angle_x, 1, 0, 0)
-        glRotatef(angle_y, 0, 1, 0)
-        glScalef(scale, scale, scale)
-        
-        # Draw the cube
-        draw_cube()
-        
-        glPopMatrix()
-
-        pygame.display.flip()
-        clock.tick(60)
-
-if __name__ == "__main__":
-    main()
+pygame.quit()
